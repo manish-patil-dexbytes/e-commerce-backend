@@ -35,7 +35,6 @@ const addProduct = (req, res) => {
     description,
     status,
   } = req.body;
-  
 
   const date = moment(launch_date);
   const formattedDate = date.format("DD/MM/yyyy");
