@@ -30,7 +30,7 @@ app.use(
 );
 app.use(bodyParser.json());
 app.use(cors());
-
+app.use("/api/product-image-uploads",express.static(path.join(__dirname,"./src/storage/product")))
 app.use("/api/admin", login);
 //===================================
 app.use("/api", getProducts);

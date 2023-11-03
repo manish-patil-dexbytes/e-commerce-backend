@@ -92,10 +92,25 @@ const addProduct = (req, res) => {
 };
 //=======================================================================
 const getProducts = (req, res) => {
-  let sql = `SELECT p.product_id, p.product_name,p.category_id, c.category_name,p.description,p.sku,p.discounted_price, p.price, p.quantity, p.status ,p.lauch_date
-  FROM product p 
-  LEFT JOIN category c ON p.category_id = c.id 
-  LEFT JOIN category c2 ON c.parent_id = c2.id`;
+  let sql = `SELECT 
+  p.product_id, 
+  p.product_name,
+  p.category_id, 
+  c.category_name,
+  p.description,
+  p.sku,
+  p.discounted_price, 
+  p.price, 
+  p.quantity, 
+  p.status,
+  p.lauch_date,
+  GROUP_CONCAT(m.image) as images
+FROM product p 
+LEFT JOIN category c ON p.category_id = c.id 
+LEFT JOIN category c2 ON c.parent_id = c2.id
+LEFT JOIN media m ON p.product_id = m.product_id
+GROUP BY p.product_id;
+`;
 
   db.query(sql, (err, result) => {
     if (err) {
@@ -107,6 +122,111 @@ const getProducts = (req, res) => {
   });
 };
 //================================================================
+// const editProduct = (req, res) => {
+//   let {
+//     id,
+//     product_name,
+//     category_id,
+//     price,
+//     discounted_price,
+//     quantity,
+//     launch_date,
+//     SKU,
+//     description,
+//   } = req.body;
+
+//   let formattedDate = null;
+//   if (launch_date) {
+//     const date = moment(launch_date);
+//     formattedDate = date.format("DD/MM/yyyy");
+//   }
+//   const images = req.files ? req.files.map((file) => file.filename) : [];
+//   let updateProductQuery;
+//   let updateParams;
+//   if (formattedDate != "Invalid date") {
+//     updateProductQuery = `UPDATE product
+//       SET 
+//           product_name = ?,
+//           category_id =?,
+//           price = ?,
+//           discounted_price = ?,
+//           quantity = ?,
+//           lauch_date = ?,
+//           SKU = ?,
+//           description = ?
+        
+//       WHERE
+//           product_id = ?;`;
+//     updateParams = [
+//       product_name,
+//       category_id,
+//       price,
+//       discounted_price,
+//       quantity,
+//       formattedDate,
+//       SKU,
+//       description,
+//       id,
+//     ];
+//   } else {
+//     updateProductQuery = `UPDATE product
+//       SET 
+//           product_name = ?,
+//           category_id =?,
+//           price = ?,
+//           discounted_price = ?,
+//           quantity = ?,
+//           SKU = ?,
+//           description = ?
+//       WHERE
+//           product_id = ?`;
+//     updateParams = [
+//       product_name,
+//       category_id,
+//       price,
+//       discounted_price,
+//       quantity,
+//       SKU,
+//       description,
+//       id,
+//     ];
+//   }
+//   console.log(images);
+//   const updateMedia = `UPDATE media SET image = ? WHERE product_id = ?`;
+
+//   db.query(updateProductQuery, updateParams, (err, result) => {
+//     if (err) {
+//       console.error("Error updating product:", err);
+//       res
+//         .status(500)
+//         .json({ success: false, message: "Internal server error" });
+//     } else {
+//       let successCount = 0;
+//       if (images.length > 0) {
+//         images.forEach((image, index) => {
+//           db.query(updateMedia, [image, id], (err, result) => {
+//             if (err) {
+//               console.error("Failed to update media", err);
+//             } else {
+//               successCount++;
+//               if (successCount === images.length) {
+//                 res.json({
+//                   success: true,
+//                   message: "Product and media updated successfully",
+//                 });
+//               }
+//             }
+//           });
+//         });
+//       } else {
+//         res.json({
+//           success: true,
+//           message: "Product updated successfully",
+//         });
+//       }
+//     }
+//   });
+// };
 const editProduct = (req, res) => {
   let {
     id,
@@ -126,20 +246,20 @@ const editProduct = (req, res) => {
     formattedDate = date.format("DD/MM/yyyy");
   }
   const images = req.files ? req.files.map((file) => file.filename) : [];
+
   let updateProductQuery;
   let updateParams;
   if (formattedDate != "Invalid date") {
     updateProductQuery = `UPDATE product
       SET 
           product_name = ?,
-          category_id =?,
+          category_id = ?,
           price = ?,
           discounted_price = ?,
           quantity = ?,
           lauch_date = ?,
           SKU = ?,
           description = ?
-        
       WHERE
           product_id = ?;`;
     updateParams = [
@@ -157,7 +277,7 @@ const editProduct = (req, res) => {
     updateProductQuery = `UPDATE product
       SET 
           product_name = ?,
-          category_id =?,
+          category_id = ?,
           price = ?,
           discounted_price = ?,
           quantity = ?,
@@ -177,41 +297,42 @@ const editProduct = (req, res) => {
     ];
   }
 
-  const updateMedia = `UPDATE media SET image = ? WHERE product_id = ?`;
+  const deleteMediaQuery = `DELETE FROM media WHERE product_id = ?`;
+  const insertMediaQuery = `INSERT INTO media (image, product_id) VALUES ?`;
 
   db.query(updateProductQuery, updateParams, (err, result) => {
     if (err) {
       console.error("Error updating product:", err);
-      res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
+      res.status(500).json({ success: false, message: "Internal server error" });
     } else {
-      let successCount = 0;
-      if (images.length > 0) {
-        images.forEach((image, index) => {
-          db.query(updateMedia, [image, id], (err, result) => {
-            if (err) {
-              console.error("Failed to update media", err);
-            } else {
-              successCount++;
-              if (successCount === images.length) {
+      db.query(deleteMediaQuery, id, (err, result) => {
+        if (err) {
+          console.error("Error deleting media for product:", err);
+        } else {
+          if (images.length > 0) {
+            const imageValues = images.map((image) => [image, id]);
+            db.query(insertMediaQuery, [imageValues], (err, result) => {
+              if (err) {
+                console.error("Error inserting new media for product:", err);
+              } else {
                 res.json({
                   success: true,
                   message: "Product and media updated successfully",
                 });
               }
-            }
-          });
-        });
-      } else {
-        res.json({
-          success: true,
-          message: "Product updated successfully",
-        });
-      }
+            });
+          } else {
+            res.json({
+              success: true,
+              message: "Product updated successfully",
+            });
+          }
+        }
+      });
     }
   });
 };
+
 
 //========================================================================
 const updateProductStatus = (req, res) => {

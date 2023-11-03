@@ -35,7 +35,7 @@ router.post("/add-category", upload.single("image"), addCategory);
 router.put("/edit-category", upload.single("image"), editCategory); // Renamed the route to specify the category update
 router.use("/uploads", express.static(path.join(__dirname, "../storage/uploads")));
 router.get("/:id", viewCategory); // Updated the route to explicitly specify the category view
-router.get("/categories/:id", getImagePath);
+// router.get("/categories/:id", getImagePath);
 
 module.exports = router;
 //================================

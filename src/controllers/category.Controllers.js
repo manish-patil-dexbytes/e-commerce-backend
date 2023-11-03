@@ -1,4 +1,4 @@
-const { db } = require("../db/connection");
+  const { db } = require("../db/connection");
 const { validateText, validateInput } = require("../helpers/validations");
 
 const getCategories = (req, res) => {
