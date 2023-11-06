@@ -1,22 +1,20 @@
-const { db } = require("../db/connection");
 const moment = require("moment");
-
+const productModel = require("../models/productModels");
 //===================================================================
 const deleteProduct = (req, res) => {
   const productId = req.params.id;
-  const query_media = `DELETE FROM media WHERE product_id = ?;`;
-  const query_product = `DELETE FROM product WHERE  product_id =?;`;
 
-  db.query(query_media, [productId], (err, result) => {
+  productModel.deleteMediaByProductId(productId, (err, result) => {
     if (err) {
       console.error("Database query error" + err);
       res.status(500).json({ error: "data not deleted" });
     } else {
-      db.query(query_product, [productId], (err, result) => {
+      productModel.deleteProductById(productId, (err, result) => {
         if (err) {
           console.error("failed to delete data");
+          res.status(500).json({ error: "data not deleted" });
         } else {
-          res.json({ success: true, message: " data deleted " });
+          res.json({ success: true, message: "data deleted" });
         }
       });
     }
@@ -40,37 +38,28 @@ const addProduct = (req, res) => {
   const formattedDate = date.format("DD/MM/yyyy");
   const images = req.files ? req.files.map((file) => file.filename) : [];
 
-  const insertProductSql =
-    "INSERT INTO product (product_name, category_id,  price, discounted_price, quantity, sku, lauch_date, description, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-  db.query(
-    insertProductSql,
-    [
-      product_name,
-      category_name,
-      price,
-      discounted_price,
-      quantity,
-      SKU,
-      formattedDate,
-      description,
-      status,
-    ],
-    (productErr, productResult) => {
+  productModel.insertProduct(
+    product_name,
+    category_name,
+    price,
+    discounted_price,
+    quantity,
+    SKU,
+    formattedDate,
+    description,
+    status,
+    (productErr, productId) => {
       if (productErr) {
         console.error("Failed to insert product data:", productErr);
         res
           .status(500)
           .json({ success: false, message: "Failed to add product data" });
       } else {
-        const productId = productResult.insertId;
-
-        const insertMediaSql =
-          "INSERT INTO media (product_id, image) VALUES (?,?)";
         let successCount = 0;
         images.forEach((image, index) => {
-          db.query(
-            insertMediaSql,
-            [productId, image],
+          productModel.insertMedia(
+            productId,
+            image,
             (mediaErr, mediaResult) => {
               if (mediaErr) {
                 console.error("Failed to insert media data:", mediaErr);
@@ -90,29 +79,10 @@ const addProduct = (req, res) => {
     }
   );
 };
+
 //=======================================================================
 const getProducts = (req, res) => {
-  let sql = `SELECT 
-  p.product_id, 
-  p.product_name,
-  p.category_id, 
-  c.category_name,
-  p.description,
-  p.sku,
-  p.discounted_price, 
-  p.price, 
-  p.quantity, 
-  p.status,
-  p.lauch_date,
-  GROUP_CONCAT(m.image) as images
-FROM product p 
-LEFT JOIN category c ON p.category_id = c.id 
-LEFT JOIN category c2 ON c.parent_id = c2.id
-LEFT JOIN media m ON p.product_id = m.product_id
-GROUP BY p.product_id;
-`;
-
-  db.query(sql, (err, result) => {
+  productModel.getProducts((err, result) => {
     if (err) {
       console.error("Error retrieving products:", err);
       res.status(500).send("Internal Server Error");
@@ -122,113 +92,8 @@ GROUP BY p.product_id;
   });
 };
 //================================================================
-// const editProduct = (req, res) => {
-//   let {
-//     id,
-//     product_name,
-//     category_id,
-//     price,
-//     discounted_price,
-//     quantity,
-//     launch_date,
-//     SKU,
-//     description,
-//   } = req.body;
-
-//   let formattedDate = null;
-//   if (launch_date) {
-//     const date = moment(launch_date);
-//     formattedDate = date.format("DD/MM/yyyy");
-//   }
-//   const images = req.files ? req.files.map((file) => file.filename) : [];
-//   let updateProductQuery;
-//   let updateParams;
-//   if (formattedDate != "Invalid date") {
-//     updateProductQuery = `UPDATE product
-//       SET 
-//           product_name = ?,
-//           category_id =?,
-//           price = ?,
-//           discounted_price = ?,
-//           quantity = ?,
-//           lauch_date = ?,
-//           SKU = ?,
-//           description = ?
-        
-//       WHERE
-//           product_id = ?;`;
-//     updateParams = [
-//       product_name,
-//       category_id,
-//       price,
-//       discounted_price,
-//       quantity,
-//       formattedDate,
-//       SKU,
-//       description,
-//       id,
-//     ];
-//   } else {
-//     updateProductQuery = `UPDATE product
-//       SET 
-//           product_name = ?,
-//           category_id =?,
-//           price = ?,
-//           discounted_price = ?,
-//           quantity = ?,
-//           SKU = ?,
-//           description = ?
-//       WHERE
-//           product_id = ?`;
-//     updateParams = [
-//       product_name,
-//       category_id,
-//       price,
-//       discounted_price,
-//       quantity,
-//       SKU,
-//       description,
-//       id,
-//     ];
-//   }
-//   console.log(images);
-//   const updateMedia = `UPDATE media SET image = ? WHERE product_id = ?`;
-
-//   db.query(updateProductQuery, updateParams, (err, result) => {
-//     if (err) {
-//       console.error("Error updating product:", err);
-//       res
-//         .status(500)
-//         .json({ success: false, message: "Internal server error" });
-//     } else {
-//       let successCount = 0;
-//       if (images.length > 0) {
-//         images.forEach((image, index) => {
-//           db.query(updateMedia, [image, id], (err, result) => {
-//             if (err) {
-//               console.error("Failed to update media", err);
-//             } else {
-//               successCount++;
-//               if (successCount === images.length) {
-//                 res.json({
-//                   success: true,
-//                   message: "Product and media updated successfully",
-//                 });
-//               }
-//             }
-//           });
-//         });
-//       } else {
-//         res.json({
-//           success: true,
-//           message: "Product updated successfully",
-//         });
-//       }
-//     }
-//   });
-// };
 const editProduct = (req, res) => {
-  let {
+  const {
     id,
     product_name,
     category_id,
@@ -239,130 +104,59 @@ const editProduct = (req, res) => {
     SKU,
     description,
   } = req.body;
-
-  let formattedDate = null;
-  if (launch_date) {
-    const date = moment(launch_date);
-    formattedDate = date.format("DD/MM/yyyy");
-  }
   const images = req.files ? req.files.map((file) => file.filename) : [];
 
-  let updateProductQuery;
-  let updateParams;
-  if (formattedDate != "Invalid date") {
-    updateProductQuery = `UPDATE product
-      SET 
-          product_name = ?,
-          category_id = ?,
-          price = ?,
-          discounted_price = ?,
-          quantity = ?,
-          lauch_date = ?,
-          SKU = ?,
-          description = ?
-      WHERE
-          product_id = ?;`;
-    updateParams = [
-      product_name,
-      category_id,
-      price,
-      discounted_price,
-      quantity,
-      formattedDate,
-      SKU,
-      description,
-      id,
-    ];
-  } else {
-    updateProductQuery = `UPDATE product
-      SET 
-          product_name = ?,
-          category_id = ?,
-          price = ?,
-          discounted_price = ?,
-          quantity = ?,
-          SKU = ?,
-          description = ?
-      WHERE
-          product_id = ?`;
-    updateParams = [
-      product_name,
-      category_id,
-      price,
-      discounted_price,
-      quantity,
-      SKU,
-      description,
-      id,
-    ];
-  }
+  const data = {
+    id,
+    product_name,
+    category_id,
+    price,
+    discounted_price,
+    quantity,
+    launch_date,
+    SKU,
+    description,
+    images,
+  };
 
-  const deleteMediaQuery = `DELETE FROM media WHERE product_id = ?`;
-  const insertMediaQuery = `INSERT INTO media (image, product_id) VALUES ?`;
-
-  db.query(updateProductQuery, updateParams, (err, result) => {
+  productModel.editProduct(data, (err, message) => {
     if (err) {
       console.error("Error updating product:", err);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
     } else {
-      db.query(deleteMediaQuery, id, (err, result) => {
-        if (err) {
-          console.error("Error deleting media for product:", err);
-        } else {
-          if (images.length > 0) {
-            const imageValues = images.map((image) => [image, id]);
-            db.query(insertMediaQuery, [imageValues], (err, result) => {
-              if (err) {
-                console.error("Error inserting new media for product:", err);
-              } else {
-                res.json({
-                  success: true,
-                  message: "Product and media updated successfully",
-                });
-              }
-            });
-          } else {
-            res.json({
-              success: true,
-              message: "Product updated successfully",
-            });
-          }
-        }
+      res.json({
+        success: true,
+        message: message,
       });
     }
   });
 };
-
-
 //========================================================================
 const updateProductStatus = (req, res) => {
   let id = req.params.id;
   const { status } = req.body;
-  const sql = "UPDATE product SET status =? where product_id =?";
-  db.query(sql, [status, id], (err, result) => {
+
+  productModel.updateProductStatus(id, status, (err, message) => {
     if (err) {
       console.error(err);
       res.status(500).json({ error: "Error in updating status" });
-      return;
+    } else {
+      res.json({ message: message });
     }
-    res.json({ message: "Record update successfully" });
   });
 };
 //========================================================================
 const getCategories = async (req, res) => {
   try {
-    const [rows, fields] = await db
-      .promise()
-      .query(
-        `SELECT  id as category_id, category_name, parent_id FROM category`
-      );
-    res.json(rows);
+    const categories = await productModel.getCategories();
+    res.json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 //========================================================================
 module.exports = {
   deleteProduct,

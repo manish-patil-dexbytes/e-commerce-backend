@@ -35,8 +35,7 @@ var upload = multer({
   fileFilter: isImageOrVideo,
 });
 //=====================================================================
-
-router.delete("/:id", deleteProduct);
+router.delete("/deleteProduct/:id", deleteProduct);
 //===========================================================================
 router.post("/add-product", upload.array("images", 5), addProduct);
 //==========================================================================
@@ -44,7 +43,7 @@ router.get("/get-products", getProducts);
 // router.get("/get-products", getProducts);
 router.put("/edit-product", upload.array("media", 5), editProduct);
 //===========================================================
-router.put("/status/:id", updateProductStatus);
+router.put("/product-status/status/:id", updateProductStatus);
 //==========================================================
 router.get("/categories", getCategories);
 
