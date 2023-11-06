@@ -1,64 +1,10 @@
-// const { db } = require("../db/connection");
-// const { validateText, validateInput } = require("../helpers/validations");
 
-// const addVarients = (req, res) => {
-//   const { variant, attributes } = req.body;
-
-//   const variantQuery = "INSERT INTO variants (name) VALUES (?)";
-//   const attributeQuery =
-//     "INSERT INTO variant_attributes (variant_id, attribute) VALUES ?";
-
-//   db.query(variantQuery, [variant], (err, result) => {
-//     if (err) {
-//       console.error("Failed to insert data into the variant table:", err);
-//       res.status(500).json({ success: false, message: "Failed to add data" });
-//     } else {
-//       const variantId = result.insertId;
-//       const attributeData = attributes.map((attribute) => [
-//         variantId,
-//         attribute,
-//       ]);
-
-//       db.query(attributeQuery, [attributeData], (err, result) => {
-//         if (err) {
-//           console.error("Failed to insert data into the files table:", err);
-//           res
-//             .status(500)
-//             .json({ success: false, message: "Failed to add data" });
-//         } else {
-//           res.json({ success: true, message: "Data added successfully" });
-//         }
-//       });
-//     }
-//   });
-// };
-// const getVariants = (req, res) => {
-//   const query = `
-//     SELECT v.id, v.name, GROUP_CONCAT(va.attribute) AS attributes
-//     FROM variants v
-//     JOIN variant_attributes va ON v.id = va.variant_id
-//     GROUP BY v.id, v.name;
-//   `;
-
-//   db.query(query, (error, results) => {
-//     if (error) {
-//       console.error("Error fetching data: ", error);
-//       res.status(500).json({ success: false, message: "Failed to fetch data" });
-//     } else {
-//       res.json(results);
-//     }
-//   });
-// };
-// module.exports = {
-//   addVarients,
-//   getVariants,
-// };
-const varientModel= require("../models/varientModels");
+const variantModel= require("../models/varientModels");
 
 const addVariants = (req, res) => {
   const { variant, attributes } = req.body;
 
-  varientModel.addVariants(variant, attributes, (err, result) => {
+  variantModel.addVariants(variant, attributes, (err, result) => {
     if (err) {
       console.error("Failed to add variants:", err);
       res.status(500).json({ success: false, message: "Failed to add data" });
@@ -69,7 +15,7 @@ const addVariants = (req, res) => {
 };
 
 const getVariants = (req, res) => {
-  varientModel.getVariants((error, results) => {
+  variantModel.getVariants((error, results) => {
     if (error) {
       console.error("Error fetching variants:", error);
       res.status(500).json({ success: false, message: "Failed to fetch data" });
@@ -78,8 +24,35 @@ const getVariants = (req, res) => {
     }
   });
 };
+const deleteVariant = (req, res) => {
+  const variantId = req.params.id;
+
+  variantModel.deleteVariant(variantId, (err, result) => {
+    if (err) {
+      console.error("Failed to delete variant:", err);
+      res.status(500).json({ success: false, message: "Failed to delete variant" });
+    } else {
+      res.json({ success: true, message: "Variant and its attributes deleted successfully" });
+    }
+  });
+};
+
+const updateVariant = (req, res) => {
+  const { id, name, attributes } = req.body;
+
+  variantModel.updateVariants(id, name, attributes, (err, result) => {
+    if (err) {
+      console.error("Failed to update variants", err);
+      res.status(500).json({ success: false, message: "Failed to update" });
+    } else {
+      res.json({ success: true, message: "Data updated successfully" });
+    }
+  });
+};
 
 module.exports = {
   addVariants,
   getVariants,
+  deleteVariant,
+  updateVariant,
 };

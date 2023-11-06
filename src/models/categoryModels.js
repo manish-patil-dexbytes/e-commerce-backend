@@ -118,7 +118,7 @@ const updateCategory = (
   description,
   callback
 ) => {
-  let categoryQuery; // Declare categoryQuery here
+  let categoryQuery; // categoryQuery 
   let queries;
 
   if (parent_id) {
