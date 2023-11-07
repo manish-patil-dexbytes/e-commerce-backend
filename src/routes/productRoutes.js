@@ -1,7 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const path = require("path");
 const {
   addProduct,
   deleteProduct,
@@ -10,41 +8,24 @@ const {
   updateProductStatus,
   getCategories,
 } = require("../controllers/product.Controllers");
-//=====================================================================
-const storagePath = path.join(__dirname, "../storage/product");
+const { productUpload } = require("../helpers/multerConfig");
 
-var imgconfig = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, storagePath); // all product images stored in product folder
-  },
-  filename: (req, file, callback) => {
-    callback(null, `products-${Date.now()}.${file.originalname}`);
-  },
-});
-
-const isImageOrVideo = (req, file, callback) => {
-  if (file.mimetype.startsWith("image") || file.mimetype.startsWith("video")) {
-    callback(null, true);
-  } else {
-    callback(new Error("Only Image or Video is allowed"));
-  }
-};
-
-var upload = multer({
-  storage: imgconfig,
-  fileFilter: isImageOrVideo,
-});
-//=====================================================================
+// Route to delete a product
 router.delete("/deleteProduct/:id", deleteProduct);
-//===========================================================================
-router.post("/add-product", upload.array("images", 5), addProduct);
-//==========================================================================
+
+// Route to add a new product
+router.post("/add-product", productUpload.array("images", 5), addProduct);
+
+// Route to get all products
 router.get("/get-products", getProducts);
-// router.get("/get-products", getProducts);
-router.put("/edit-product", upload.array("media", 5), editProduct);
-//===========================================================
+
+// Route to edit a product
+router.put("/edit-product", productUpload.array("media", 5), editProduct);
+
+// Route to update the status of a product
 router.put("/product-status/status/:id", updateProductStatus);
-//==========================================================
+
+// Route to get all categories
 router.get("/categories", getCategories);
 
 module.exports = router;

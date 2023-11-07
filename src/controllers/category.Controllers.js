@@ -1,6 +1,7 @@
 const { validateText, validateInput } = require("../helpers/validations");
 const categoryModel = require("../models/categoryModels");
 
+//fething the category data 
 const getCategories = (req, res) => {
   categoryModel.getAllCategories((err, result) => {
     if (err) {
@@ -12,6 +13,7 @@ const getCategories = (req, res) => {
   });
 };
 //=======================================================
+//updating category status
 const updateCategoryStatus = (req, res) => {
   let id = req.params.id;
   // Validate the id to ensure it is in the correct format
@@ -30,6 +32,7 @@ const updateCategoryStatus = (req, res) => {
 };
 
 //=======================================================
+//fething parent categories
 const getParentCategory = (req, res) => {
   categoryModel.getParentCategory((err, results) => {
     if (err) {
@@ -41,6 +44,7 @@ const getParentCategory = (req, res) => {
   });
 };
 //=========================================================
+//adding new category
 const addCategory = (req, res) => {
   const { category_name, parent_category, description, status } = req.body;
   const image = req.file ? req.file.filename : null;
@@ -61,7 +65,7 @@ const addCategory = (req, res) => {
 
   let parent_id = null;
   if (parent_category) {
-    parent_id = parent_category; // Assuming parent_category holds the ID of the parent category
+    parent_id = parent_category; // parent_category holds the id of the parent category
   }
 
   categoryModel.addCategory(
@@ -91,6 +95,7 @@ const addCategory = (req, res) => {
   );
 };
 //========================================================
+//geting category data for selected id 
 const viewCategory = (req, res) => {
   const categoryId = req.params.id;
 
@@ -107,6 +112,7 @@ const viewCategory = (req, res) => {
 };
 
 //========================================================
+//editing the existing category
 const editCategory = (req, res) => {
   const { id, category_name, parent_category, description } = req.body;
   const image = req.file ? req.file.filename : null;
@@ -114,7 +120,7 @@ const editCategory = (req, res) => {
   let parent_id = null;
   // Check if parent_category is a number before assigning it to parent_id
   if (parent_category && !isNaN(parent_category)) {
-    parent_id = parseInt(parent_category); // Assuming parent_category holds the ID of the parent category
+    parent_id = parseInt(parent_category); //  parent_category holds the ID of the parent category
   }
 
   categoryModel.updateCategory(
