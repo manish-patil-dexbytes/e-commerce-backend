@@ -1,5 +1,6 @@
 const { validateText, validateInput } = require("../helpers/validations");
 const categoryModel = require("../models/categoryModels");
+const generalModels =require("../models/generalModels");
 
 //fething the category data 
 const getCategories = (req, res) => {
@@ -13,24 +14,19 @@ const getCategories = (req, res) => {
   });
 };
 //=======================================================
-//updating category status
 const updateCategoryStatus = (req, res) => {
+  const table ="category" 
   let id = req.params.id;
-  // Validate the id to ensure it is in the correct format
-  if (isNaN(id)) {
-    return res.status(400).json({ error: "Invalid ID format" });
-  }
   const { status } = req.body;
-  categoryModel.updateCategoryStatus(id, status, (err, result) => {
+  generalModels.updateStatus(table, id, status, (err, message) => {
     if (err) {
       console.error(err);
-      res.status(500).json({ error: "Error updating record" });
+      res.status(500).json({ error: "Error in updating status" });
     } else {
-      res.json({ message: "Record updated successfully" });
+      res.json({ message: message });
     }
   });
 };
-
 //=======================================================
 //fething parent categories
 const getParentCategory = (req, res) => {
@@ -51,16 +47,16 @@ const addCategory = (req, res) => {
 
   if (
     !validateText(category_name) ||
-    !validateText(description) ||
-    !validateText(image)
+    !validateText(description) 
+  
   ) {
     return res
       .status(400)
-      .json({ success: false, message: "Required fields are missing" });
+      .json({ success: false, message: 'Required fields are missing' });
   } else if (!validateInput(category_name)) {
     return res
       .status(400)
-      .json({ success: false, message: "Name should be characters" });
+      .json({ success: false, message: 'Name should be characters' });
   }
 
   let parent_id = null;
@@ -68,32 +64,29 @@ const addCategory = (req, res) => {
     parent_id = parent_category; // parent_category holds the id of the parent category
   }
 
-  categoryModel.addCategory(
-    category_name,
-    parent_id,
-    description,
-    status,
-    (err, result) => {
-      if (err) {
-        console.error("Failed to insert data into the category table:", err);
-        res.status(500).json({ success: false, message: "Failed to add data" });
-      } else {
-        // Get the last inserted category_id
-        const category_id = result.insertId;
-        categoryModel.addMedia(category_id, image, (err, result) => {
-          if (err) {
-            console.error("Failed to insert data into the files table:", err);
-            res
-              .status(500)
-              .json({ success: false, message: "Failed to add data" });
-          } else {
-            res.json({ success: true, message: "Data added successfully" });
-          }
-        });
-      }
+  const fields = ['category_name', 'parent_id', 'description', 'status'];
+  const values = [category_name, parent_id, description, status];
+
+  generalModels.insertData('category', fields, values, (err, categoryId) => {
+    if (err) {
+      console.error('Failed to insert data into the category table:', err);
+      res.status(500).json({ success: false, message: 'Failed to add data' });
+    } else {
+      const mediaFields = ['category_id', 'image'];
+      const mediaValues = [categoryId, image];
+
+     generalModels. insertData('media', mediaFields, mediaValues, (err, result) => {
+        if (err) {
+          console.error('Failed to insert data into the files table:', err);
+          res.status(500).json({ success: false, message: 'Failed to add data' });
+        } else {
+          res.json({ success: true, message: 'Data added successfully' });
+        }
+      });
     }
-  );
+  });
 };
+
 //========================================================
 //geting category data for selected id 
 const viewCategory = (req, res) => {

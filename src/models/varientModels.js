@@ -1,28 +1,6 @@
 const { db } = require("../db/connection");
 
-//model for adding variants and its attribute 
-const addVariants = (variant, attributes, callback) => {
-  const variantQuery = "INSERT INTO variants (name) VALUES (?)"; //Query for inserting variant
-  const attributeQuery ="INSERT INTO variant_attributes (variant_id, attribute) VALUES ?";//query for inserting attributes
-  db.query(variantQuery, [variant], (err, result) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      const variantId = result.insertId;
-      const attributeData = attributes.map((attribute) => [
-        variantId,
-        attribute,
-      ]);
-      db.query(attributeQuery, [attributeData], (err, result) => {
-        if (err) {
-          callback(err, null);
-        } else {
-          callback(null, result);
-        }
-      });
-    }
-  });
-};
+
 //model to get variants data
 const getVariants = (callback) => {
   const query = `
@@ -36,26 +14,6 @@ const getVariants = (callback) => {
       callback(error, null);
     } else {
       callback(null, results);
-    }
-  });
-};
-//model for deleting the variants and its attributes
-const deleteVariant = (variantId, callback) => {
-  const deleteAttributesQuery =
-    "DELETE FROM variant_attributes WHERE variant_id = ?";//delete variant_attribute query
-  const deleteVariantQuery = "DELETE FROM variants WHERE id = ?";//delete variant query
-
-  db.query(deleteAttributesQuery, variantId, (err, attributesResult) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      db.query(deleteVariantQuery, variantId, (err, variantResult) => {
-        if (err) {
-          callback(err, null);
-        } else {
-          callback(null, "Variant and its attributes deleted successfully");
-        }
-      });
     }
   });
 };
@@ -103,8 +61,6 @@ const updateVariants = (id, name, attributes, callback) => {
 //================================================
 //exporting data for controllers
 module.exports = {
-  addVariants,
   getVariants,
-  deleteVariant,
   updateVariants,
 };

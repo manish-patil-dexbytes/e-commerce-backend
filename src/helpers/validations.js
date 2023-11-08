@@ -24,17 +24,3 @@ module.exports = {
   validateInput
 };
 
-
-// const { validateText, validateDescription, validateImage } = require('./validations');
-
-// router.post("/add-category", upload.single("image"), (req, res) => {
-//   const { category_name, parent_category, description, status } = req.body;
-//   const image = req.file ? req.file.filename : null;
-
-//   // Check if the required fields are not empty
-//   if (!validateCategoryName(category_name) || !validateDescription(description) || !validateImage(image)) {
-//     return res.status(400).json({ success: false, message: "Required fields are missing" });
-//   }
-
-//   // Rest of your code...
-// });

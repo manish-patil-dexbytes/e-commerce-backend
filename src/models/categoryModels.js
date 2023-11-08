@@ -1,6 +1,6 @@
 const { db } = require("../db/connection");
 
-// Function to get all categories with their parent categories and associated images
+
 const getAllCategories = (callback) => {
   // SQL query to fetch categories
   const sql = `SELECT 
@@ -27,21 +27,6 @@ LEFT JOIN media m
     }
   });
 };
-
-//=========================================================
-// Function to update the status of a category
-const updateCategoryStatus = (id, status, callback) => {
-  // SQL query to update the category status
-  const sql = "UPDATE category SET status=? WHERE id=?";
-  db.query(sql, [status, id], (err, result) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      callback(null, result);
-    }
-  });
-};
-
 //==========================================================
 // Function to get all parent categories
 const getParentCategory = (callback) => {
@@ -56,44 +41,6 @@ const getParentCategory = (callback) => {
   });
 };
 //================================================================
-// Function to add a new category
-const addCategory = (
-  category_name,
-  parent_id,
-  description,
-  status,
-  callback
-) => {
-  // SQL query to insert a new category
-  const categoryQuery =
-    "INSERT INTO category (category_name, parent_id, description, status) VALUES (?, ?, ?, ?)";
-
-  // Execute the query
-  db.query(
-    categoryQuery,
-    [category_name, parent_id, description, status],
-    (err, result) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        callback(null, result);
-      }
-    }
-  );
-};
-//=====================================================
-// Function to add media for a category
-const addMedia = (category_id, image, callback) => {
-  // SQL query to insert media for a category
-  const filesQuery = "INSERT INTO media (category_id, image) VALUES (?, ?)";
-  db.query(filesQuery, [category_id, image], (err, result) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      callback(null, result);
-    }
-  });
-};
 //=======================================================
 // Function to get a category by its ID
 const getCategoryById = (categoryId, callback) => {
@@ -165,33 +112,12 @@ const updateMedia = (image, category_id, callback) => {
     }
   });
 };
-
-//=========================================================
-// Function to get the image path by category ID
-const getImagePathByCategoryId = (categoryId, callback) => {
-  const sql = "SELECT image FROM media WHERE category_id= ?";
-  db.query(sql, [categoryId], (err, results) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      if (results.length === 0) {
-        callback({ message: "Category not found" }, null);
-      } else {
-        const imagePath = results[0].image;
-        callback(null, imagePath);
-      }
-    }
-  });
-};
 //==========================================================
 module.exports = {
   getAllCategories,
-  updateCategoryStatus,
   getParentCategory,
-  addCategory,
-  addMedia,
   getCategoryById,
   updateCategory,
   updateMedia,
-  getImagePathByCategoryId,
+
 };

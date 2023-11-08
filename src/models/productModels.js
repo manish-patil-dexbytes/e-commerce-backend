@@ -1,82 +1,6 @@
 const { db } = require("../db/connection");
 const moment = require("moment");
 
-
-
-const deleteMediaByProductId = (productId, callback) => {
-  const query_media = `DELETE FROM media WHERE product_id = ?;`;
-
-  db.query(query_media, [productId], (err, result) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      callback(null, result);
-    }
-  });
-};
-
-const deleteProductById = (productId, callback) => {
-  const query_product = `DELETE FROM product WHERE  product_id =?;`;
-
-  db.query(query_product, [productId], (err, result) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      callback(null, result);
-    }
-  });
-};
-//========================================================
-
-const insertProduct = (
-  product_name,
-  category_id,
-  price,
-  discounted_price,
-  quantity,
-  SKU,
-  formattedDate,
-  description,
-  status,
-  callback
-) => {
-  const insertProductSql =
-    "INSERT INTO product (product_name, category_id,  price, discounted_price, quantity, sku, lauch_date, description, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-  db.query(
-    insertProductSql,
-    [
-      product_name,
-      category_id,
-      price,
-      discounted_price,
-      quantity,
-      SKU,
-      formattedDate,
-      description,
-      status,
-    ],
-    (productErr, productResult) => {
-      if (productErr) {
-        callback(productErr, null);
-      } else {
-        const productId = productResult.insertId;
-        callback(null, productId);
-      }
-    }
-  );
-};
-//===========================================================
-const insertMedia = (productId, image, callback) => {
-  const insertMediaSql = "INSERT INTO media (product_id, image) VALUES (?,?)";
-  db.query(insertMediaSql, [productId, image], (mediaErr, mediaResult) => {
-    if (mediaErr) {
-      callback(mediaErr, null);
-    } else {
-      callback(null, mediaResult);
-    }
-  });
-};
-
 //========================================================
 
 const getProducts = (callback) => {
@@ -208,19 +132,6 @@ const editProduct = (data, callback) => {
     }
   });
 };
-
-//=========================================================
-const updateProductStatus = (id, status, callback) => {
-  const sql = "UPDATE product SET status = ? where product_id = ?";
-  db.query(sql, [status, id], (err, result) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      callback(null, "Record updated successfully");
-    }
-  });
-};
-
 //=========================================================
 const getCategories = async () => {
   try {
@@ -236,12 +147,7 @@ const getCategories = async () => {
 };
 //=========================================================
 module.exports = {
-  deleteMediaByProductId,
-  deleteProductById,
-  insertProduct,
-  insertMedia,
   getProducts,
   editProduct,
-  updateProductStatus,
   getCategories,
 };
