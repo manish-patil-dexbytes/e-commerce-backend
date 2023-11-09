@@ -5,17 +5,17 @@ const generalModels = require("../models/generalModels");
 // Function to delete an existing product
 const deleteProduct = (req, res) => {
   const productId = req.params.id;
-  const product = "product";
-  const media = "media";
-  const colum = "product_id";
+  const productTable = "product";
+  const mediaTable = "media";
+  const column = "product_id";
   // Delete media associated with the product first
-  generalModels.deleteDataById(media, colum, productId, (err, result) => {
+  generalModels.deleteDataById(mediaTable, column, productId, (err, result) => {
     if (err) {
       console.error("Database query error" + err);
       res.status(500).json({ error: "data not deleted" });
     } else {
       // If media deletion is successful, delete the product
-      generalModels.deleteDataById(product, colum, productId, (err, result) => {
+      generalModels.deleteDataById(productTable, column, productId, (err, result) => {
         if (err) {
           console.error("failed to delete data");
           res.status(500).json({ error: "data not deleted" });
@@ -27,95 +27,7 @@ const deleteProduct = (req, res) => {
   });
 };
 //======================================================================
-// const addProduct = (req, res) => {
-//   // Extracting required data from the request body
-//   let {
-//     product_name,
-//     category_name,
-//     price,
-//     discounted_price,
-//     quantity,
-//     SKU,
-//     launch_date,
-//     description,
-//     status,
-//   } = req.body;
-
-//   // Format the date using moment.js
-//   const date = moment(launch_date);
-//   const formattedDate = date.format("DD/MM/yyyy");
-
-//   // Extract images from the request
-//   const images = req.files ? req.files.map((file) => file.filename) : [];
-
-//   // Set up the fields and values for the insertData function
-//   const fields = [
-//     "product_name",
-//     "category_id",
-//     "price",
-//     "discounted_price",
-//     "quantity",
-//     "SKU",
-//     "lauch_date",
-//     "description",
-//     "status",
-//   ];
-//   const values = [
-//     product_name,
-//     category_name,
-//     price,
-//     discounted_price,
-//     quantity,
-//     SKU,
-//     formattedDate,
-//     description,
-//     status,
-//   ];
-
-//   // Insert the product data into the database
-//   generalModels.insertData(
-//     "product",
-//     fields,
-//     values,
-//     (productErr, productId) => {
-//       if (productErr) {
-//         console.error("Failed to insert product data:", productErr);
-//         res
-//           .status(500)
-//           .json({ success: false, message: "Failed to add product data" });
-//       } else {
-
-//       }
-//       {
-//         // If product insertion is successful, insert associated media
-//         let successCount = 0;
-//         images.forEach((image, index) => {
-//           const mediaFields = ["product_id", "image"];
-//           const mediaValues = [productId, image];
-
-//           generalModels.insertData(
-//             "media",
-//             mediaFields,
-//             mediaValues,
-//             (mediaErr, mediaResult) => {
-//               if (mediaErr) {
-//                 console.error("Failed to insert media data:", mediaErr);
-//               } else {
-//                 successCount++;
-//                 if (successCount === images.length) {
-//                   res.json({
-//                     success: true,
-//                     message: "Product and Media data added successfully",
-//                   });
-//                 }
-//               }
-//             }
-//           );
-//         });
-//       }
-//     }
-//   );
-// };
+// Function to add a product
 const addProduct = (req, res) => {
   // Extracting required data from the request body
   let {
