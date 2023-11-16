@@ -12,20 +12,14 @@ const {
 
 // Route to get all categories
 router.get("/get-categories", getCategories);
-
 // Route to update category status
 router.put("/categories-status/status/:id", updateCategoryStatus);
-
 // Route to get parent categories
 router.get("/parent-category", getParentCategory);
-
 // Route to add a new category
 router.post("/add-category", upload.single("image"), addCategory);
-
 // Route to edit a category
 router.put("/edit-category", upload.single("image"), editCategory);
-
 // Route to view a specific category
 router.get("/view-categories/:id", viewCategory);
-
 module.exports = router;

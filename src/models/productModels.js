@@ -2,35 +2,33 @@ const { db } = require("../db/connection");
 const moment = require("moment");
 
 //========================================================
+const getProducts = async (callback) => {
+  try {
+    let sql = `SELECT 
+        p.product_id, 
+        p.product_name,
+        p.category_id, 
+        c.category_name,
+        p.description,
+        p.sku,
+        p.discounted_price, 
+        p.price, 
+        p.quantity, 
+        p.status,
+        p.lauch_date,
+        GROUP_CONCAT(m.image) as images
+      FROM product p 
+      LEFT JOIN category c ON p.category_id = c.id 
+      LEFT JOIN category c2 ON c.parent_id = c2.id
+      LEFT JOIN media m ON p.product_id = m.product_id
+      GROUP BY p.product_id;
+      `;
 
-const getProducts = (callback) => {
-  let sql = `SELECT 
-      p.product_id, 
-      p.product_name,
-      p.category_id, 
-      c.category_name,
-      p.description,
-      p.sku,
-      p.discounted_price, 
-      p.price, 
-      p.quantity, 
-      p.status,
-      p.lauch_date,
-      GROUP_CONCAT(m.image) as images
-    FROM product p 
-    LEFT JOIN category c ON p.category_id = c.id 
-    LEFT JOIN category c2 ON c.parent_id = c2.id
-    LEFT JOIN media m ON p.product_id = m.product_id
-    GROUP BY p.product_id;
-    `;
-
-  db.query(sql, (err, result) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      callback(null, result);
-    }
-  });
+    const result = await db.promise().query(sql);
+    callback(null, result[0]);
+  } catch (err) {
+    callback(err, null);
+  }
 };
 
 //=========================================================
@@ -107,30 +105,34 @@ const editProduct = (data, callback) => {
   const deleteMediaQuery = `DELETE FROM media WHERE product_id = ?`;
   const insertMediaQuery = `INSERT INTO media (image, product_id) VALUES ?`;
 
-  db.query(updateProductQuery, updateParams, (err, result) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      if (images && images.length > 0) {
-        db.query(deleteMediaQuery, id, (err, result) => {
-          if (err) {
-            callback(err, null);
-          } else {
-            const imageValues = images.map((image) => [image, id]);
-            db.query(insertMediaQuery, [imageValues], (err, result) => {
-              if (err) {
-                callback(err, null);
-              } else {
-                callback(null, "Product and media updated successfully");
-              }
-            });
-          }
-        });
+  try {
+    db.query(updateProductQuery, updateParams, (err, result) => {
+      if (err) {
+        throw err;
       } else {
-        callback(null, "Product updated successfully");
+        if (images && images.length > 0) {
+          db.query(deleteMediaQuery, id, (err, result) => {
+            if (err) {
+              throw err;
+            } else {
+              const imageValues = images.map((image) => [image, id]);
+              db.query(insertMediaQuery, [imageValues], (err, result) => {
+                if (err) {
+                  throw err;
+                } else {
+                  callback(null, "Product and media updated successfully");
+                }
+              });
+            }
+          });
+        } else {
+          callback(null, "Product updated successfully");
+        }
       }
-    }
-  });
+    });
+  } catch (err) {
+    callback(err, null);
+  }
 };
 //=========================================================
 const getCategories = async () => {

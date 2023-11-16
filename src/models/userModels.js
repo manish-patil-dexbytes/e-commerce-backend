@@ -11,18 +11,21 @@ function encrypt(text) {
 
 // Function for user authentication
 function loginUser(email, password, callback) {
-  const encryptedPassword = encrypt(password);
-  db.query(
-    "SELECT gmail,password FROM users WHERE gmail = ? AND password = ?",
-    [email, encryptedPassword],
-    (err, results) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        callback(null, results);
+  try {
+    const encryptedPassword = encrypt(password);
+    db.query(
+      "SELECT gmail, password FROM users WHERE gmail = ? AND password = ?",
+      [email, encryptedPassword],
+      (err, results) => {
+        if (err) {
+          throw err;
+        } else {
+          callback(null, results);
+        }
       }
-    }
-  );
+    );
+  } catch (err) {
+    callback(err, null);
+  }
 }
-
 module.exports = { encrypt, loginUser };
