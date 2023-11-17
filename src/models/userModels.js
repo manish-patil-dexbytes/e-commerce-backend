@@ -1,6 +1,5 @@
 const { db } = require("../db/connection");
 const crypto = require("crypto");
-
 // AES encryption function
 function encrypt(text) {
   const cipher = crypto.createCipher("aes-256-cbc", "encryptionKey");
@@ -8,7 +7,6 @@ function encrypt(text) {
   encrypted += cipher.final("hex");
   return encrypted;
 }
-
 // Function for user authentication
 function loginUser(email, password, callback) {
   try {
