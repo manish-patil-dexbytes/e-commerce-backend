@@ -1,6 +1,7 @@
 const moment = require("moment");
 const productModel = require("../models/productModels");
 const generalModels = require("../models/generalModels");
+const { response } = require("express");
 //===================================================================
 // Function to delete an existing product
 const deleteProduct = (req, res) => {
@@ -8,35 +9,65 @@ const deleteProduct = (req, res) => {
     const productId = req.params.id;
     const productTable = "product";
     const mediaTable = "media";
+    const productVariantTable = "product_variants"; 
     const column = "product_id";
 
-    // Delete media associated with the product first
-    generalModels.deleteDataById(mediaTable, column, productId, (err, result) => {
-      if (err) {
-        console.error("Error deleting media:", err);
-        res.status(500).json({ error: "Failed to delete media" });
-      } else {
-        // If media deletion is successful, delete the product
-        generalModels.deleteDataById(productTable, column, productId, (err, result) => {
-          if (err) {
-            console.error("Error deleting product:", err);
-            res.status(500).json({ error: "Failed to delete product" });
-          } else {
-            res.json({ success: true, message: "Data deleted successfully" });
-          }
-        });
+    // Delete product variants associated with the product first
+    generalModels.deleteDataById(
+      productVariantTable,
+      column,
+      productId,
+      (err, result) => {
+        if (err) {
+          console.error("Error deleting product variants:", err);
+          res.status(500).json({ error: "Failed to delete product variants" });
+        } else {
+          // If product variants deletion is successful, delete the media
+          generalModels.deleteDataById(
+            mediaTable,
+            column,
+            productId,
+            (err, result) => {
+              if (err) {
+                console.error("Error deleting media:", err);
+                res.status(500).json({ error: "Failed to delete media" });
+              } else {
+                // If media deletion is successful, delete the product
+                generalModels.deleteDataById(
+                  productTable,
+                  column,
+                  productId,
+                  (err, result) => {
+                    if (err) {
+                      console.error("Error deleting product:", err);
+                      res
+                        .status(500)
+                        .json({ error: "Failed to delete product" });
+                    } else {
+                      res.json({
+                        success: true,
+                        message: "Data deleted successfully",
+                      });
+                    }
+                  }
+                );
+              }
+            }
+          );
+        }
       }
-    });
+    );
   } catch (error) {
     console.error("Error in deleteProduct:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 //======================================================================
-// Function to add a product
-const addProduct = (req, res) => {
+//function to add product
+const addProduct = async (req, res) => {
   try {
-    // Extracting required data from the request body
+    // Extract required data from the request body
     let {
       product_name,
       category_name,
@@ -47,6 +78,7 @@ const addProduct = (req, res) => {
       launch_date,
       description,
       status,
+      variants,
     } = req.body;
 
     // Format the date using moment.js
@@ -80,30 +112,86 @@ const addProduct = (req, res) => {
       status,
     ];
 
-    // Insert the product data into the database
-    generalModels.insertData("product", fields, values, (productErr, productId) => {
-      if (productErr) {
-        console.error("Failed to insert product data:", productErr);
-        return res
-          .status(500)
-          .json({ success: false, message: "Failed to add product data" });
+    // Insert product data
+    generalModels.insertData(
+      "product",
+      fields,
+      values,
+      async (productErr, productId) => {
+        if (productErr) {
+          console.error("Failed to insert product data:", productErr);
+          return res
+            .status(500)
+            .json({ success: false, message: "Failed to add product data" });
+        }
+
+        // If no variants and no images selected, return success
+        if (variants && variants.length === 0 && images.length === 0) {
+          return res.json({
+            success: true,
+            message: "Product added successfully without variants and images",
+          });
+        }
+
+        // Insert variants data
+        if (variants && variants.length > 0) {
+          let insertionCount = 0;
+          for (const variant of variants) {
+            const variantId = variant.variant;
+            for (const attribute of variant.attributes) {
+              const VariantValues = [productId, variantId, attribute];
+              const variantFields = [
+                "product_id",
+                "variant_id",
+                "attribute_id",
+              ];
+              await new Promise((resolve, reject) => {
+                generalModels.insertData(
+                  "product_variants",
+                  variantFields,
+                  VariantValues,
+                  (variantErr, variantResult) => {
+                    if (variantErr) {
+                      console.error("Failed to add variants", variantErr);
+                    } else {
+                      insertionCount++;
+                      if (insertionCount === variants.length) {
+                        // If all variants inserted, proceed to handle images
+                        handleImages(productId, images, res);
+                      }
+                    }
+                    resolve();
+                  }
+                );
+              });
+            }
+          }
+        } else {
+          // If no variants selected, handle images directly
+          handleImages(productId, images, res);
+        }
       }
+    );
+  } catch (error) {
+    console.error("Error in addProduct:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
 
-      // If no images are provided, send the success response
-      if (images.length === 0) {
-        return res.json({
-          success: true,
-          message: "Product data added successfully",
-        });
-      }
+// Function to handle image insertion
+const handleImages = (productId, images, res) => {
+  // Handle image insertion if images are present
+  if (images.length > 0) {
+    let successCount = 0;
+    images.forEach((image, index) => {
+      const mediaFields = ["product_id", "image"];
+      const mediaValues = [productId, image];
 
-      // If product insertion is successful, insert associated media
-      let successCount = 0;
-      images.forEach((image, index) => {
-        const mediaFields = ["product_id", "image"];
-        const mediaValues = [productId, image];
-
-        generalModels.insertData("media", mediaFields, mediaValues, (mediaErr, mediaResult) => {
+      generalModels.insertData(
+        "media",
+        mediaFields,
+        mediaValues,
+        (mediaErr, mediaResult) => {
           if (mediaErr) {
             console.error("Failed to insert media data:", mediaErr);
           } else {
@@ -111,19 +199,21 @@ const addProduct = (req, res) => {
             if (successCount === images.length) {
               res.json({
                 success: true,
-                message: "Product and Media data added successfully",
+                message: "Product and Images data added successfully",
               });
             }
           }
-        });
-      });
+        }
+      );
     });
-  } catch (error) {
-    console.error("Error in addProduct:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+  } else {
+    // If no images, return success
+    res.json({
+      success: true,
+      message: "Product added successfully without images",
+    });
   }
 };
-
 //=======================================================================
 // Function to fetch all saved products
 const getProducts = (req, res) => {
@@ -202,7 +292,7 @@ const updateProductStatus = (req, res) => {
     const table = "product"; // Assuming the table name is passed as a parameter
     const id = req.params.id;
     const { status } = req.body;
-    
+
     // Call the utility function to update the status
     generalModels.updateStatus(table, id, status, (err, message) => {
       if (err) {
@@ -219,14 +309,48 @@ const updateProductStatus = (req, res) => {
 };
 
 //========================================================================
-// Function to fetch all categories and parent categories
 const getCategories = async (req, res) => {
   try {
-    // Fetch categories from the database
-    const categories = await productModel.getCategories();
-    res.json(categories);
+    const columnsToRetrieve = [
+      "id AS category_id",
+      "category_name",
+      "parent_id",
+    ]; // Define the columns you want to retrieve
+    const categoriesData = await generalModels.SelectQuery(
+      "category",
+      columnsToRetrieve
+    );
+    res.json(categoriesData);
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error("Error fetching categories data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+//================================================
+const getVariants = async (req, res) => {
+  try {
+    const columnsToRetrieve = ["id", "name"]; // columns to retrieve
+    const variantsData = await generalModels.SelectQuery(
+      "variants",
+      columnsToRetrieve
+    );
+    res.json(variantsData);
+  } catch (error) {
+    console.error("Error fetching variants data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getAttributes = async (req, res) => {
+  try {
+    const columnToRetriev = ["id", "variant_id", "attribute"];
+    const attributeData = await generalModels.SelectQuery(
+      "variant_attributes",
+      columnToRetriev
+    );
+    res.json(attributeData);
+  } catch (error) {
+    console.error("Error in fetching attributes");
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -239,4 +363,6 @@ module.exports = {
   editProduct,
   updateProductStatus,
   getCategories,
+  getVariants,
+  getAttributes,
 };

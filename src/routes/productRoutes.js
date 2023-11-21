@@ -7,6 +7,8 @@ const {
   editProduct,
   updateProductStatus,
   getCategories,
+  getVariants,
+  getAttributes,
 } = require("../controllers/product.Controllers");
 const { productUpload } = require("../helpers/multerConfig");
 
@@ -27,5 +29,7 @@ router.put("/product-status/status/:id", updateProductStatus);
 
 // Route to get all categories
 router.get("/categories", getCategories);
+router.get("/variants",getVariants);
+router.get("/attributes",getAttributes);
 
 module.exports = router;

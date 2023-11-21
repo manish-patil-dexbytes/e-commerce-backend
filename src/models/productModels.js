@@ -1,3 +1,4 @@
+const { query } = require("express");
 const { db } = require("../db/connection");
 const moment = require("moment");
 
@@ -135,21 +136,7 @@ const editProduct = (data, callback) => {
   }
 };
 //=========================================================
-const getCategories = async () => {
-  try {
-    const [rows, fields] = await db
-      .promise()
-      .query(
-        `SELECT  id as category_id, category_name, parent_id FROM category`
-      );
-    return rows;
-  } catch (error) {
-    throw error;
-  }
-};
-//=========================================================
 module.exports = {
   getProducts,
   editProduct,
-  getCategories,
 };

@@ -1,5 +1,18 @@
 const { db } = require("../db/connection");
 
+
+
+const SelectQuery = async (tableName, columns) => {
+  try {
+    const cols = columns.join(', ');
+    const sql = `SELECT ${cols} FROM ${tableName}`;
+    const result = await db.promise().query(sql);
+    return result[0];
+  } catch (error) {
+    throw error;
+  }
+};
+
 const updateStatus = (table, id, status, callback) => {
   try {
     const sql = `UPDATE ${table} SET status = ? WHERE ${table === "category" ? "id" : "product_id"} = ?`;
@@ -82,4 +95,4 @@ const updateMedia = (tableName, updateFields, updateValues, whereCondition, dele
   }
 };
 
-module.exports = { updateStatus, deleteDataById, insertData, updateData, updateMedia };
+module.exports = { updateStatus, deleteDataById, insertData, updateData, updateMedia,SelectQuery };
