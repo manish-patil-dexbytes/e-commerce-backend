@@ -247,6 +247,7 @@ const editProduct = (req, res) => {
       launch_date,
       SKU,
       description,
+      variants,
     } = req.body;
 
     // Extract images from the request
@@ -262,9 +263,9 @@ const editProduct = (req, res) => {
       launch_date,
       SKU,
       description,
+      variants,
       images,
     };
-
     // Call the model function to update the product
     productModel.editProduct(data, (err, message) => {
       if (err) {

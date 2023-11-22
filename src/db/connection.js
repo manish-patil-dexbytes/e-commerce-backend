@@ -1,10 +1,11 @@
 const mysql = require("mysql2");
+const dbInfo  = require("./envHandler");
 
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "Manish@14",
-  database: "ecommerce",
+  host: dbInfo.host,
+  user: dbInfo.user,
+  password: dbInfo.password,
+  database: dbInfo.database,
 });
 // Connect to the MySQL database
 db.connect((err) => {
