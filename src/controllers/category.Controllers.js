@@ -65,7 +65,6 @@ const addCategory = (req, res) => {
   try {
     const { category_name, parent_category, description, status } = req.body;
     const image = req.file ? req.file.filename : null;
-
     if (!validateText(category_name) || !validateText(description)) {
       return res
         .status(400)
@@ -141,6 +140,7 @@ const editCategory = (req, res) => {
   try {
     const { id, category_name, parent_category, description } = req.body;
     const image = req.file ? req.file.filename : null;
+
 
     let parent_id = null;
     // Check if parent_category is a number before assigning it to parent_id
