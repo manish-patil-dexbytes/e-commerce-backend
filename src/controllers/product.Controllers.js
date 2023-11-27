@@ -67,8 +67,7 @@ const deleteProduct = (req, res) => {
 //function to add product
 const addProduct = async (req, res) => {
   try {
-    // Extract required data from the request body
-    let {
+    const {
       product_name,
       category_name,
       price,
@@ -79,7 +78,8 @@ const addProduct = async (req, res) => {
       description,
       status,
       variants,
-    } = req.body;
+    
+    } = req.validatedData;
 
     // Format the date using moment.js
     const date = moment(launch_date);
@@ -248,7 +248,7 @@ const editProduct = (req, res) => {
       SKU,
       description,
       variants,
-    } = req.body;
+    } = req.validatedData;
 
     // Extract images from the request
     const images = req.files ? req.files.map((file) => file.filename) : [];
@@ -291,8 +291,8 @@ const editProduct = (req, res) => {
 const updateProductStatus = (req, res) => {
   try {
     const table = "product"; // Assuming the table name is passed as a parameter
-    const id = req.params.id;
-    const { status } = req.body;
+   
+    const { id,status } = req.validatedData;
 
     // Call the utility function to update the status
     generalModels.updateStatus(table, id, status, (err, message) => {

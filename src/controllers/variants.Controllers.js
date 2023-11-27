@@ -4,7 +4,7 @@ const generalModels = require("../models/generalModels");
 
 const addVariants = (req, res) => {
   try {
-    const { variant, attributes } = req.body;
+    const { variant, attributes } = req.validatedData;
     // Define the fields and values for the variants
     const variantFields = ['name'];
     const variantValues = [variant];
@@ -91,7 +91,7 @@ const deleteVariant = (req, res) => {
 //controller to update variants
 const updateVariant = (req, res) => {
   try {
-    const { id, name, attributes } = req.body;
+    const { id, name, attributes } = req.validatedData;
 
     variantModel.updateVariants(id, name, attributes, (err, result) => {
       if (err) {

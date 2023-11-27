@@ -18,14 +18,12 @@ const getCategories = (req, res) => {
     res.status(500).json({ error: "Error fetching categories" });
   }
 };
-
 //=======================================================
 //controller to  change status 
 const updateCategoryStatus = (req, res) => {
   try {
     const table = "category";
-    let id = req.params.id;
-    const { status } = req.body;
+    const { id,status } = req.validatedData;
 
     generalModels.updateStatus(table, id, status, (err, message) => {
       if (err) {
@@ -58,12 +56,16 @@ const getParentCategory = (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
 //=========================================================
 //adding new category
 const addCategory = (req, res) => {
   try {
-    const { category_name, parent_category, description, status } = req.body;
+     const{
+      category_name,
+      description,
+      parent_category,
+      status,
+    } = req.validatedData
     const image = req.file ? req.file.filename : null;
     if (!validateText(category_name) || !validateText(description)) {
       return res
@@ -118,7 +120,6 @@ const addCategory = (req, res) => {
 const viewCategory = (req, res) => {
   try {
     const categoryId = req.params.id;
-
     categoryModel.getCategoryById(categoryId, (err, result) => {
       if (err) {
         console.error("Database query error: " + err.stack);
@@ -138,16 +139,13 @@ const viewCategory = (req, res) => {
 //editing the existing category
 const editCategory = (req, res) => {
   try {
-    const { id, category_name, parent_category, description } = req.body;
+    const { id, category_name, parent_category, description } = req.validatedData;
     const image = req.file ? req.file.filename : null;
-
-
     let parent_id = null;
     // Check if parent_category is a number before assigning it to parent_id
     if (parent_category && !isNaN(parent_category)) {
       parent_id = parseInt(parent_category); // parent_category holds the ID of the parent category
     }
-
     categoryModel.updateCategory(
       id,
       category_name,
@@ -182,7 +180,6 @@ const editCategory = (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
 //==========================================================
 module.exports = {
   getCategories,

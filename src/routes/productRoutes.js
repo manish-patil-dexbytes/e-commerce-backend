@@ -11,21 +11,23 @@ const {
   getAttributes,
 } = require("../controllers/product.Controllers");
 const { productUpload } = require("../helpers/multerConfig");
+const { validateAddProduct, validateEditProduct } = require("../middleware/productsValidate");
+const { validateStatusChange } = require("../middleware/categoriesValidate");
 
 // Route to delete a product
 router.delete("/deleteProduct/:id", deleteProduct);
 
 // Route to add a new product
-router.post("/add-product", productUpload.array("images", 5), addProduct);
+router.post("/add-product", productUpload.array("images", 5),validateAddProduct, addProduct);
 
 // Route to get all products
 router.get("/get-products", getProducts);
 
 // Route to edit a product
-router.put("/edit-product", productUpload.array("media", 5), editProduct);
+router.put("/edit-product", productUpload.array("media", 5),validateEditProduct, editProduct);
 
 // Route to update the status of a product
-router.put("/product-status/status/:id", updateProductStatus);
+router.put("/product-status/status/:id",validateStatusChange, updateProductStatus);
 
 // Route to get all categories
 router.get("/categories", getCategories);

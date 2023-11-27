@@ -9,11 +9,11 @@ const {
   editCategory,
   updateCategoryStatus,
 } = require("../controllers/category.Controllers");
-const {validateAddCategory, validateEditCategory} = require("../middleware/categories");
+const {validateAddCategory, validateEditCategory,validateStatusChange} = require("../middleware/categoriesValidate");
 // Route to get all categories
 router.get("/get-categories", getCategories);
 // Route to update category status
-router.put("/categories-status/status/:id", updateCategoryStatus);
+router.put("/categories-status/status/:id",validateStatusChange, updateCategoryStatus);
 // Route to get parent categories
 router.get("/parent-category", getParentCategory);
 // Route to add a new category

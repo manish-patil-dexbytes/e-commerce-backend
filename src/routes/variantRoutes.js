@@ -6,9 +6,10 @@ const {
   deleteVariant,
   updateVariant
 } = require("../controllers/variants.Controllers");
+const { validateAddVariants, validateEditVariants } = require("../middleware/variantsValidate");
 
 // Route to add a new variant
-router.post("/add-variant", addVariants);
+router.post("/add-variant",validateAddVariants,addVariants);
 
 // Route to get all variants
 router.get("/get-variant", getVariants);
@@ -17,6 +18,6 @@ router.get("/get-variant", getVariants);
 router.delete("/deleteVariant/:id", deleteVariant);
 
 // Route to update a variant
-router.put("/update-variant", updateVariant);
+router.put("/update-variant", validateEditVariants, updateVariant);
 
 module.exports = router;

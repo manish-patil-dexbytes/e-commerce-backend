@@ -4,7 +4,7 @@ const { validateEmail, validatePassword } = require("../helpers/validations");
 // Authentication Logic
 const login = (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.validatedData;
 
     // Validate email format
     if (!validateEmail(email)) {
@@ -42,4 +42,3 @@ const login = (req, res) => {
 };
 
 module.exports = { login };
-
