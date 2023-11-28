@@ -59,6 +59,7 @@ const getParentCategory = (req, res) => {
 //=========================================================
 //adding new category
 const addCategory = (req, res) => {
+  // Extracting validated data
   try {
      const{
       category_name,
@@ -67,6 +68,7 @@ const addCategory = (req, res) => {
       status,
     } = req.validatedData
     const image = req.file ? req.file.filename : null;
+       // Validation checks for category_name and description
     if (!validateText(category_name) || !validateText(description)) {
       return res
         .status(400)
@@ -81,7 +83,7 @@ const addCategory = (req, res) => {
     if (parent_category) {
       parent_id = parent_category; // parent_category holds the id of the parent category
     }
-
+   // Inserting data into the category and media tables
     const fields = ["category_name", "parent_id", "description", "status"];
     const values = [category_name, parent_id, description, status];
 
@@ -146,6 +148,7 @@ const editCategory = (req, res) => {
     if (parent_category && !isNaN(parent_category)) {
       parent_id = parseInt(parent_category); // parent_category holds the ID of the parent category
     }
+    // Updating category information
     categoryModel.updateCategory(
       id,
       category_name,
@@ -158,6 +161,7 @@ const editCategory = (req, res) => {
             .status(500)
             .json({ success: false, message: "Failed to update data" });
         } else {
+          // Updating media information
           if (image) {
             categoryModel.updateMedia(image, id, (err, result) => {
               if (err) {

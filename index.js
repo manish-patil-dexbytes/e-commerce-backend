@@ -15,10 +15,7 @@ const variantRoutes = require("./src/routes/variantRoutes");
 app.use(bodyParser.json());
 app.use(cors());
 app.use("/api/category-image-uploades",express.static(path.join(__dirname, "./src/storage/uploads")));
-app.use(bodyParser.json());
-app.use(cors());
 app.use("/api/product-image-uploads",express.static(path.join(__dirname,"./src/storage/product")))
-
 
 app.use("/api/admin", login);
 app.use("/api", categoryRoutes);

@@ -2,6 +2,7 @@ const { db } = require("../db/connection");
 const moment = require("moment");
 
 //========================================================
+//function to get all the products 
 const getProducts = async (callback) => {
   try {
     let sql = `SELECT 
@@ -51,6 +52,7 @@ GROUP BY p.product_id;
 };
 
 //=========================================================
+//function to edit the products
 const editProduct = (data, callback) => {
   const {
     id,
@@ -121,7 +123,6 @@ const editProduct = (data, callback) => {
       id,
     ];
   }
-
   const deleteMediaQuery = `DELETE FROM media WHERE product_id = ?`;
   const insertMediaQuery = `INSERT INTO media (image, product_id) VALUES ?`;
   const deleteVariantsQuery = `DELETE FROM product_variants WHERE product_id = ?`;

@@ -1,8 +1,9 @@
 const { db } = require("../db/connection");
 
+// Function to get all categories with their parent categories and associated media
 const getAllCategories = (callback) => {
   try {
-    // SQL query to fetch categories
+    // SQL query to fetch categories with parent categories and media
     const sql = `SELECT 
       c1.id,
       c1.category_name AS category_name,
@@ -31,7 +32,6 @@ const getAllCategories = (callback) => {
   }
 };
 
-//==========================================================
 // Function to get all parent categories
 const getParentCategory = (callback) => {
   try {
@@ -49,11 +49,10 @@ const getParentCategory = (callback) => {
   }
 };
 
-//================================================================
 // Function to get a category by its ID
 const getCategoryById = (categoryId, callback) => {
   try {
-    // SQL query to fetch a category by its ID
+    // SQL query to fetch a category by its ID with parent category and media
     const query = `SELECT 
       c.category_name, 
       cp.category_name AS parent_name, 
@@ -82,7 +81,6 @@ const getCategoryById = (categoryId, callback) => {
   }
 };
 
-//========================================================
 // Function to update a category
 const updateCategory = (
   id,
@@ -110,7 +108,6 @@ const updateCategory = (
   }
 };
 
-//==========================================================
 // Function to update media for a category
 const updateMedia = (image, category_id, callback) => {
   try {
@@ -128,7 +125,6 @@ const updateMedia = (image, category_id, callback) => {
   }
 };
 
-//==========================================================
 module.exports = {
   getAllCategories,
   getParentCategory,

@@ -1,9 +1,9 @@
 const { db } = require("../db/connection");
 
-
-//model to get variants data
+// Model to get variants data
 const getVariants = (callback) => {
   try {
+    // SQL query to retrieve variant data including attributes
     const query = `
       SELECT v.id, v.name, GROUP_CONCAT(va.attribute) AS attributes
       FROM variants v
@@ -11,6 +11,7 @@ const getVariants = (callback) => {
       GROUP BY v.id, v.name;
     `;
 
+    // Execute the query
     db.query(query, (error, results) => {
       if (error) {
         throw error;
@@ -19,17 +20,22 @@ const getVariants = (callback) => {
       }
     });
   } catch (error) {
+    // Handle any caught errors
     callback(error, null);
   }
 };
 
 //================================================
- //model for updating the existing variants and attributes
+
+// Model for updating the existing variants and attributes
 const updateVariants = (id, name, attributes, callback) => {
   try {
-    const variantQuery = `UPDATE variants SET name = ? WHERE id = ?`; // variant update query
+    // SQL query to update variant name
+    const variantQuery = `UPDATE variants SET name = ? WHERE id = ?`; 
     const v_queries = [name, id];
-    const attributesArray = attributes.split(",").map((attribute) => [id, attribute]); // converting string into object
+
+    // Converting string of attributes into an array of objects
+    const attributesArray = attributes.split(",").map((attribute) => [id, attribute]);
 
     // Check for duplicates in attributes array
     const duplicateValues = attributesArray.filter(
@@ -41,17 +47,21 @@ const updateVariants = (id, name, attributes, callback) => {
       throw "Duplicate attribute values are not allowed.";
     }
 
-    const deleteAttributesQuery = "DELETE FROM variant_attributes WHERE variant_id = ?"; // deleting existing attributes of variant
-    const insertAttributeQuery = "INSERT INTO variant_attributes (variant_id, attribute) VALUES ?"; // inserting new attributes for variant
+    // SQL queries to delete existing attributes and insert new ones
+    const deleteAttributesQuery = "DELETE FROM variant_attributes WHERE variant_id = ?";
+    const insertAttributeQuery = "INSERT INTO variant_attributes (variant_id, attribute) VALUES ?";
 
+    // Update variant name
     db.query(variantQuery, v_queries, (err, result) => {
       if (err) {
         throw err;
       } else {
+        // Delete existing attributes for the variant
         db.query(deleteAttributesQuery, id, (err, result) => {
           if (err) {
             throw err;
           } else {
+            // Insert new attributes for the variant
             db.query(insertAttributeQuery, [attributesArray], (err, result) => {
               if (err) {
                 throw err;
@@ -64,11 +74,14 @@ const updateVariants = (id, name, attributes, callback) => {
       }
     });
   } catch (error) {
+    // Handle any caught errors
     callback(error, null);
   }
 };
+
 //================================================
-//exporting data for controllers
+
+// Exporting data for controllers
 module.exports = {
   getVariants,
   updateVariants,

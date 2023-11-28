@@ -26,7 +26,7 @@ const addVariants = (req, res) => {
             console.error('Failed to add attributes:', err);
             return res.status(500).json({ success: false, message: 'Failed to add data' });
           }
-          // You might add additional code here if needed
+          // we might add additional code here if needed
         });
       });
 

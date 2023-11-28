@@ -20,6 +20,8 @@ const login = (req, res) => {
         message: "Invalid password format.",
       });
     }
+
+    // Attempt login using user-provided credentials
     loginUser(email, password, (err, results) => {
       if (err) {
         console.error("MySQL error:", err);
@@ -27,6 +29,7 @@ const login = (req, res) => {
           .status(500)
           .json({ success: false, message: "Internal server error" });
       } else if (results.length === 1) {
+        // Generate and send JWT token upon successful authentication
         generateToken(req, res, () => {
           res.json({
             success: true,
@@ -35,14 +38,17 @@ const login = (req, res) => {
           });
         });
       } else {
+        // Authentication failed due to invalid credentials
         res
           .status(401)
           .json({ success: false, message: "Authentication failed" });
       }
     });
   } catch (error) {
+    // Handle exceptions thrown during login process
     console.error("Exception in login:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 module.exports = { login };
