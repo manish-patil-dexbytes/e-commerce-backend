@@ -1,5 +1,6 @@
 const { loginUser } = require("../models/userModels");
 const { validateEmail, validatePassword } = require("../helpers/validations");
+const { generateToken } = require("../middleware/jwtMiddleware");
 
 // Authentication Logic
 const login = (req, res) => {
@@ -12,7 +13,6 @@ const login = (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid email format" });
     }
-
     // Validate password format
     if (!validatePassword(password)) {
       return res.status(400).json({
@@ -20,7 +20,6 @@ const login = (req, res) => {
         message: "Invalid password format.",
       });
     }
-
     loginUser(email, password, (err, results) => {
       if (err) {
         console.error("MySQL error:", err);
@@ -28,7 +27,13 @@ const login = (req, res) => {
           .status(500)
           .json({ success: false, message: "Internal server error" });
       } else if (results.length === 1) {
-        res.json({ success: true, message: "Authentication successful" });
+        generateToken(req, res, () => {
+          res.json({
+            success: true,
+            message: "Authentication successful",
+            token: req.token,
+          });
+        });
       } else {
         res
           .status(401)
@@ -40,5 +45,4 @@ const login = (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
 module.exports = { login };

@@ -26,4 +26,4 @@ function loginUser(email, password, callback) {
     callback(err, null);
   }
 }
-module.exports = { encrypt, loginUser };
+module.exports = { loginUser };

@@ -1,4 +1,5 @@
 const validateAddCategory = (req, res, next) => {
+
   let { category_name, description, parent_category, status } = req.body;
 
   parent_category = parent_category ? Number(parent_category) : null;
